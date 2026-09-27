@@ -1,0 +1,4 @@
+name = "Brainlet"
+uuid = "27bd0747-02d7-4540-9240-523d60915dde"
+authors = ["Kieran Pedrick <kieran@aileks.dev>"]
+version = "0.1.0"
