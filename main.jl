@@ -8,7 +8,7 @@ function main()
     arch::Vector{Int} = [2, 2, 1]
     nn = NN(arch)
 
-    epsilon::Float64 = 1e-2
+    epsilon::Float64 = 1e-1
     learning_rate::Float64 = 1e-1
     epochs::Int64 = 100_000
 

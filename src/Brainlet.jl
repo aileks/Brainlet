@@ -126,8 +126,6 @@ end
 # Using finite differences is a temporary solution for calculating gradients.
 # Partial derivatives and backpropagation are not yet needed for such a small model.
 function finite_diff(nn::NN, epsilon::Float64)
-    c::Float64 = cost(nn)
-
     # Store the completed weight and bias gradients for each layer.
     # These start empty and are filled as each layer is processed.
     weight_gradients::Vector{Matrix{Float64}} = Matrix{Float64}[]
@@ -137,23 +135,32 @@ function finite_diff(nn::NN, epsilon::Float64)
         weight_gradient::Matrix{Float64} = zeros(size(layer.weights))
         bias_gradient::Vector{Float64} = zeros(size(layer.biases))
 
-        # Approximate each weight's partial derivative layer.weights = w1, w2, ..., wn
+        # Approximate each parameter's partial derivative using a centered finite difference:
+        # ∂C/∂p ≈ (C(p + ε) - C(p - ε)) / (2ε)
+        # C = cost
+        # p = any weight or bias
+        # ε = a small constant deviation
+        # This estimates how changing a parameter affects the cost without computing the derivative analytically.
         for row in axes(layer.weights, 1)
             for column in axes(layer.weights, 2)
-                layer.weights[row, column] += epsilon # w1 + epsilon (and w2 + epsilon) in the AND/OR nn
-                # approximation of ∂C/∂w
-                weight_gradient[row, column] = (cost(nn) - c) / epsilon # dw1/dw2 in the AND/OR nn
-                layer.weights[row, column] -= epsilon
+                layer.weights[row, column] += epsilon
+                cost_plus = cost(nn)
+                layer.weights[row, column] -= 2 * epsilon
+                cost_minus = cost(nn)
+                layer.weights[row, column] += epsilon # restore original
+                weight_gradient[row, column] = (cost_plus - cost_minus) / (2 * epsilon)
             end
         end
 
         # Do the same approximation for biases
         # layer.biases = b1, b2, ..., bn
         for i in eachindex(layer.biases)
-            layer.biases[i] += epsilon # b + epsilon in the AND/OR nn
-            # approximation of ∂C/∂b
-            bias_gradient[i] = (cost(nn) - c) / epsilon # db in the AND/OR nn
-            layer.biases[i] -= epsilon
+            layer.biases[i] += epsilon
+            cost_plus = cost(nn)
+            layer.biases[i] -= 2 * epsilon
+            cost_minus = cost(nn)
+            layer.biases[i] += epsilon # restore original
+            bias_gradient[i] = (cost_plus - cost_minus) / (2 * epsilon)
         end
 
         push!(weight_gradients, weight_gradient)
