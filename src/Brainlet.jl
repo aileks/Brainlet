@@ -1,11 +1,11 @@
 module Brainlet
 
-# OR gate
+# AND gate
 # Columns = x1, x2, expected output
 const TRAIN_DATA::Matrix{Float64} = [
     0 0 0
-    1 0 1
-    0 1 1
+    1 0 0
+    0 1 0
     1 1 1
 ]
 
