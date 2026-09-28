@@ -1,9 +1,22 @@
 module Brainlet
 
-# NAND gate
+#=
+# XOR cannot actually be modeled with a single neuron, even with many inputs.
+#
+# A single neuron can only create one decision boundary. XOR needs to separate
+# (0, 1) and (1, 0) from both (0, 0) and (1, 1), which cannot be done with
+# a single straight line.
+#
+# In other words, no amount of training is going to fix this. The model simply
+# isn't capable of representing the function we're asking it to learn.
+#
+# It's time to make the model more complex.
+=#
+
+# XOR gate
 # Columns = x1, x2, expected output
 const TRAIN_DATA::Matrix{Float64} = [
-    0 0 1
+    0 0 0
     1 0 1
     0 1 1
     1 1 0
