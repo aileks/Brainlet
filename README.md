@@ -1,27 +1,27 @@
-# Brainlet
+# Brainlet - A Neural Network
 
-A neural network from scratch in Julia without using any third-party libraries.
+A neural network from scratch in Julia without third-party libraries.
 
-## Why Julia?
+## Current Implementation
 
-Julia is faster than Python while being similar enough in syntax. It has also has some niceties in the standard library that would require something like NumPy otherwise.
+This version is trained to learn `y = 2x`. The model has one input and one linear neuron with a weight and a bias.
 
-## Requirements
+```mermaid
+flowchart LR
+    x["x"] --> neuron["Neuron"]
+    neuron --> y["Prediction y"]
+```
 
-- Julia 1.10.12+
+## Version snapshots
 
-## Goals
+- [Single neuron](https://github.com/aileks/Brainlet/tree/single-neuron) - learns `y = 2x`
+- [AND, OR, and NAND gates](https://github.com/aileks/Brainlet/tree/or-and-gates) - one sigmoid neuron with two inputs
+- [XOR gate](https://github.com/aileks/Brainlet/tree/xor-gate) - adds a hidden layer so the network can learn XOR
 
-1. Build basic training using matrices, weights, biases, an activation function (sigmoid initially), and a cost function.
-2. Use finite differences to get training working and testable.
-3. Implement backpropagation using partial derivatives.
-4. Increase the difficulty of training problems: OR/AND gates, then a binary adder, then something more complex.
+## Run
 
-### More Complex Training Ideas
+Requires Julia 1.10.12 or newer. From the repository root:
 
-- Spiral classification: Classify points belonging to two interleaving spirals.
-- Learn an image: Predict a small grayscale image's brightness from pixel coordinates.
-- Handwritten digits: Recognize digits using MNIST.
-- Find a transmitter: Predict a hidden transmitter's coordinates from noisy signal strengths at four fixed sensors.
-- Imperfect Morse code: Recognize letters from pulse and gap durations, starting with clean timing and gradually adding noise.
-- Bouncing ball: Given a ball's position and velocity in a rectangular arena, predict where it hits a wall after several bounces.
+```sh
+julia --project=. main.jl
+```
