@@ -19,8 +19,8 @@ function cost(weight1::Float64, weight2::Float64, bias::Float64)
         x1::Float64 = TRAIN_DATA[i, 1]
         x2::Float64 = TRAIN_DATA[i, 2]
         y::Float64 = sigmoid((x1 * weight1) + (x2 * weight2) + bias)
-        diff::Float64 = y - TRAIN_DATA[i, 3]
-        result += diff^2
+        loss::Float64 = (y - TRAIN_DATA[i, 3])^2
+        result += loss
     end
 
     result /= TRAIN_COUNT
