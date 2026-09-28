@@ -1,12 +1,12 @@
 module Brainlet
 
-# AND gate
+# NAND gate
 # Columns = x1, x2, expected output
 const TRAIN_DATA::Matrix{Float64} = [
-    0 0 0
-    1 0 0
-    0 1 0
-    1 1 1
+    0 0 1
+    1 0 1
+    0 1 1
+    1 1 0
 ]
 
 const TRAIN_COUNT::Int64 = size(TRAIN_DATA, 1)
