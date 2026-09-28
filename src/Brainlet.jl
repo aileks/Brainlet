@@ -110,16 +110,18 @@ end
 # Mean squared-error loss across the whole training dataset
 function cost(nn::NN)
     result::Float64 = 0
+    output_count::Int = nn.architecture[end]
 
-    for i in 1:TRAIN_COUNT
-        input::Vector{Float64} = TRAIN_DATA[i, 1:2]
-        expected::Float64 = TRAIN_DATA[i, 3]
-        prediction::Float64 = forward(nn, input)[1]
-        loss::Float64 = (prediction - expected)^2
-        result += loss
+    for i in axes(TRAIN_DATA, 1)
+        input, expected = train(nn, i)
+        prediction::Vector{Float64} = forward(nn, input)
+
+        for j in eachindex(expected)
+            result += (prediction[j] - expected[j])^2
+        end
     end
 
-    result /= TRAIN_COUNT
+    result /= size(TRAIN_DATA, 1) * output_count
     return result
 end
 
@@ -177,6 +179,17 @@ function sigmoid(x::Float64)
     return 1 / (1 + exp(-x))
 end
 
+function train(nn::NN, i::Int)
+    input_count::Int = nn.architecture[1]
+    output_count::Int = nn.architecture[end]
+    @assert size(TRAIN_DATA, 2) == input_count + output_count
+
+    input::Vector{Float64} = TRAIN_DATA[i, 1:input_count]
+    expected::Vector{Float64} = TRAIN_DATA[i, (input_count+1):(input_count+output_count)]
+
+    return input, expected
+end
+
 # Get predictions of the network.
 function forward(nn::NN, input::Vector{Float64})
     result::Vector{Float64} = input
@@ -201,10 +214,10 @@ function layer_debug(nn::NN, input::Vector{Float64})
 end
 
 function print_results(nn::NN)
-    for (x1, x2, expected) in eachrow(TRAIN_DATA)
-        input::Vector{Float64} = [x1, x2]
-        prediction::Float64 = round(forward(nn, input)[1]; digits=6)
-        println("$(Int(x1)) | $(Int(x2)) -> $prediction :: Expected $(Int64(expected))")
+    for i in axes(TRAIN_DATA, 1)
+        input, expected = train(nn, i)
+        prediction = round.(forward(nn, input); digits=6)
+        println("$input -> $prediction :: Expected $expected")
     end
 end
 

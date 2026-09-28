@@ -5,11 +5,11 @@ function main()
     # Random.seed!()
     Random.seed!(9999)
 
-    arch::Vector{Int} = [2, 2, 1]
+    arch::Vector{Int} = [2, 3, 1]
     nn::NN = NN(arch)
 
-    epsilon::Float64 = 1e-1
-    learning_rate::Float64 = 1e-1
+    epsilon::Float64 = 1e-2
+    learning_rate::Float64 = 1e-2
     epochs::Int64 = 100_000
 
     for _ in 1:epochs
@@ -32,10 +32,11 @@ function main()
     println("Final cost = $c")
 
     println("-"^50)
-    Brainlet.layer_debug(nn, [0.0, 0.0])
-    Brainlet.layer_debug(nn, [1.0, 0.0])
-    Brainlet.layer_debug(nn, [0.0, 1.0])
-    Brainlet.layer_debug(nn, [1.0, 1.0])
+    print_results(nn)
+    # Brainlet.layer_debug(nn, [0.0, 0.0])
+    # Brainlet.layer_debug(nn, [1.0, 0.0])
+    # Brainlet.layer_debug(nn, [0.0, 1.0])
+    # Brainlet.layer_debug(nn, [1.0, 1.0])
 end
 
 main()
