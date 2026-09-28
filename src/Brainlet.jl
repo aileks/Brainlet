@@ -31,12 +31,14 @@ function cost(weight::Float64, bias::Float64)
     return result
 end
 
-function print_results(weight::Float64, bias::Float64)
-    for i in 1:TRAIN_COUNT
-        x::Float64 = TRAIN_DATA[i, 1]
-        actual::Float64 = x * weight + bias
-        expected::Float64 = TRAIN_DATA[i, 2]
-        println(actual, '\t', expected)
+function predict(weight::Float64, bias::Float64)
+    return TRAIN_DATA[:, 1] .* weight .+ bias
+end
+
+function print_results(predictions::Vector{Float64})
+    for (i, (x, expected)) in enumerate(eachrow(TRAIN_DATA))
+        prediction = round(predictions[i]; digits=6)
+        println("$(Int(x)) -> $prediction (should be $(Int(expected)))")
     end
 end
 
