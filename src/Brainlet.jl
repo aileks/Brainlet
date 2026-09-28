@@ -2,27 +2,14 @@ module Brainlet
 
 export NN, cost, finite_diff, predict, print_results
 
-#=
-# XOR cannot actually be modeled with a single neuron, even with many inputs.
-#
-# A single neuron can only create one decision boundary. XOR needs to separate
-# (0, 1) and (1, 0) from both (0, 0) and (1, 1), which cannot be done with
-# a single straight line.
-#
-# In other words, no amount of training is going to fix this. The model simply
-# isn't capable of representing the function we're asking it to learn.
-#
-# It's time to make the model more complex.
-=#
-
-# XOR gate
-# Columns = x1, x2, expected output
+#! format: off
 const TRAIN_DATA::Matrix{Float64} = [
-    0 0 0
-    1 0 1
-    0 1 1
-    1 1 0
+    0 0  0
+    1 0  1
+    0 1  1
+    1 1  0
 ]
+#! format: on
 
 const TRAIN_COUNT::Int64 = size(TRAIN_DATA, 1)
 
@@ -107,6 +94,13 @@ end
 # where p can be any weight or bias in the network.
 =#
 
+# Apply sigmoid to the weighted sum plus bias in both training and prediction.
+# Large positive or negative inputs saturate sigmoid and make gradients small.
+function sigmoid(z::Float64)
+    # TODO: Replace with ReLU
+    return 1 / (1 + exp(-z))
+end
+
 # Mean squared-error loss across the whole training dataset
 function cost(nn::NN)
     result::Float64 = 0
@@ -117,12 +111,12 @@ function cost(nn::NN)
         prediction::Vector{Float64} = forward(nn, input)
 
         for j in eachindex(expected)
+            # L(ŷ,y)
             result += (prediction[j] - expected[j])^2
         end
     end
 
-    result /= size(TRAIN_DATA, 1) * output_count
-    return result
+    return result / (TRAIN_COUNT * output_count)
 end
 
 # Using finite differences is a temporary solution for calculating gradients.
@@ -172,17 +166,127 @@ function finite_diff(nn::NN, epsilon::Float64)
     return weight_gradients, bias_gradients
 end
 
-# Apply sigmoid to the weighted sum plus bias in both training and prediction.
-# Large positive or negative inputs saturate sigmoid and make gradients small.
-function sigmoid(x::Float64)
-    # TODO: Replace with ReLU
-    return 1 / (1 + exp(-x))
+#=
+# Backpropagation
+#
+# During the forward pass, each layer computes:
+#   z = w*aₚ + b
+#   a = σ(z)
+# where:
+#   aₚ= activations from the previous layer
+#   w = weights
+#   b = biases
+#   z = pre-activation values
+#   a = output activations
+#   σ = activation function
+#
+# Backpropagation computes how much each weight and bias contributed to the final loss L by applying
+# the chain rule from the output layer back toward the input layer.
+#
+# Each layer has an error signal:
+#
+#   δ = ∂L/∂z
+#
+# For the output layer, δ is computed directly from the derivative of the loss and the derivative
+# of the activation function.
+#
+# For a hidden layer:
+#   δ⁽ˡ⁾ = (w⁽ˡ⁺¹⁾)ᵀ * δ⁽ˡ⁺¹⁾ ⊙ σ'(z⁽ˡ⁾)
+#
+# In other words, the next layer's error is propagated backward through
+# its weights, then scaled by this layer's activation derivative.
+#
+# Once δ is known, the gradients are:
+#   ∂L/∂w = δ * aₚᵀ
+#   ∂L/∂b = δ
+#
+# For an individual weight:
+#   ∂L/∂wᵢⱼ = δᵢ * aₚⱼ
+#
+# So each weight's gradient is the error of the neuron it feeds into, multiplied by the activation
+# that passed through that weight.
+#
+# Gradient descent then updates the parameters:
+#   w ← w - η * ∂L/∂w
+#   b ← b - η * ∂L/∂b
+# where η is the learning rate.
+#
+# In short:
+#   forward:   aₚ → z → a → L
+#   backward:  L →  → ∂L/∂w, ∂L/∂b
+#   update:    parameters ← parameters - η * gradients
+=#
+function backprop(nn::NN)
+    # Accumulate ∂L/∂W and ∂L/∂b for every layer.
+    weight_gradients::Vector{Matrix{Float64}} = [zeros(size(layer.weights)) for layer in nn.layers]
+    bias_gradients::Vector{Vector{Float64}} = [zeros(size(layer.biases)) for layer in nn.layers]
+
+    for i in axes(TRAIN_DATA, 1)
+        input, expected = train(nn, i)
+
+        # Cache the values produced during the forward pass because backprop will need them while moving backward.
+        activations::Vector{Vector{Float64}} = [input]
+        zs::Vector{Vector{Float64}} = Vector{Float64}[] # the vectors of pre-activations
+        input_a::Vector{Float64} = input # the activations from the previous layer
+
+        # Do a forward pass through each layer and store pre-activations and activations for use during backprop.
+        for layer in nn.layers
+            z::Vector{Float64} = layer.weights * input_a + layer.biases
+            input_a = sigmoid.(z)
+
+            push!(zs, z)
+            push!(activations, input_a)
+        end
+
+        # Compute δ for the output layer.
+        #    ∂L/∂a = 2(a-y)
+        #    a = σ(z)
+        #    σ'(z) = e^(-z)/(1+e^(-z))^2 = a(1-a)
+        #    δ = ∂L/∂z
+        #      = ∂L/∂a * ∂a/∂z
+        #      = 2(a-y) * σ'(z)
+        #      = 2(a-y) * a(1-a)
+        # `y` is the `expected` vector here.
+        output_a::Vector{Float64} = activations[end]
+        loss_gradient::Vector{Float64} = 2 .* (output_a .- expected)
+        delta::Vector{Float64} = loss_gradient .* output_a .* (1 .- output_a)
+
+        # Use δ to compute the output layer's ∂L/∂W and ∂L/∂b.
+        #    ∂L/∂W = δ * aₚᵀ
+        #    ∂L/∂b = δ
+        # where aₚ is the activation vector from the previous layer.
+        prev_a::Vector{Float64} = activations[end-1]
+        weight_gradients[end] .+= delta * transpose(prev_a)
+        bias_gradients[end] .+= delta
+
+        # Propagate δ backward through each hidden layer.
+        #    ∂L/∂a⁽ˡ⁾ = (W⁽ˡ⁺¹⁾)ᵀ * δ⁽ˡ⁺¹⁾
+        #    δ⁽ˡ⁾ = ∂L/∂z⁽ˡ⁾ = ∂L/∂a⁽ˡ⁾ ⊙ σ'(z⁽ˡ⁾)
+        #    σ'(z⁽ˡ⁾) = a⁽ˡ⁾ ⊙ (1 - a⁽ˡ⁾)
+        #    δ⁽ˡ⁾ = (W⁽ˡ⁺¹⁾)ᵀ * δ⁽ˡ⁺¹⁾ ⊙ a⁽ˡ⁾ ⊙ (1 - a⁽ˡ⁾)
+        for j in (length(nn.layers)-1):-1:1
+            curr::Vector{Float64} = activations[j+1]
+            prev::Vector{Float64} = activations[j]
+            w::Matrix{Float64} = nn.layers[j+1].weights
+            delta = transpose(w) * delta .* curr .* (1 .- curr)
+            weight_gradients[j] .+= delta * transpose(prev)
+            bias_gradients[j] .+= delta
+        end
+    end
+
+    # Convert the accumulated per-example gradients into gradients of the mean cost used by cost(nn).
+    n = TRAIN_COUNT * nn.architecture[end]
+    for i in eachindex(weight_gradients)
+        weight_gradients[i] ./= n
+        bias_gradients[i] ./= n
+    end
+
+    return weight_gradients, bias_gradients
 end
 
 function train(nn::NN, i::Int)
     input_count::Int = nn.architecture[1]
     output_count::Int = nn.architecture[end]
-    @assert size(TRAIN_DATA, 2) == input_count + output_count
 
     input::Vector{Float64} = TRAIN_DATA[i, 1:input_count]
     expected::Vector{Float64} = TRAIN_DATA[i, (input_count+1):(input_count+output_count)]
