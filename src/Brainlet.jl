@@ -54,7 +54,7 @@ end
 function print_results(predictions::Vector{Float64})
     for (i, (x1, x2, expected)) in enumerate(eachrow(TRAIN_DATA))
         prediction = round(predictions[i]; digits=6)
-        println("$(Int(x1)) | $(Int(x2)) -> $prediction")
+        println("$(Int(x1)) | $(Int(x2)) -> $prediction :: Expected $(Int64(expected))")
     end
 end
 
