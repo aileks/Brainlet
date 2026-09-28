@@ -11,6 +11,7 @@ const TRAIN_DATA::Matrix{Float64} = [
 
 const TRAIN_COUNT::Int64 = size(TRAIN_DATA, 1)
 
+# Mean squared-error loss across the whole training dataset
 function cost(weight1::Float64, weight2::Float64, bias::Float64)
     result::Float64 = 0
 
@@ -40,7 +41,6 @@ end
 # Logistic sigmoid function; good enough for current needs.
 # More complexity may require ReLU in the future.
 # Apply sigmoid to the weighted sum plus bias in both training and prediction.
-# Finite differences through cost already include it; don't apply it to gradients.
 # Large positive or negative inputs saturate sigmoid and make gradients small.
 function sigmoid(x::Float64)
     # TODO: Replace with ReLU
