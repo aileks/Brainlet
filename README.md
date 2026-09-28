@@ -1,27 +1,51 @@
 # Brainlet
 
-A neural network from scratch in Julia without using any third-party libraries.
+A neural network from scratch in Julia without third-party libraries. It started as a single-neuron proof of concept, learned AND, OR, and NAND gates, and now trains on XOR.
 
-## Why Julia?
+## Current implementation
 
-Julia is faster than Python while being similar enough in syntax. It has also has some niceties in the standard library that would require something like NumPy otherwise.
+The XOR model has two inputs, two hidden neurons, and one output neuron. Every neuron in a layer receives every value from the previous layer. Each neuron has its own bias and uses the sigmoid activation function.
 
-## Requirements
+```mermaid
+flowchart LR
+    subgraph Inputs
+        x1["x₁"]
+        x2["x₂"]
+    end
+    subgraph Hidden["Hidden layer: sigmoid"]
+        h1["Neuron 1"]
+        h2["Neuron 2"]
+    end
+    subgraph Output["Output layer: sigmoid"]
+        y["XOR prediction"]
+    end
 
-- Julia 1.10.12+
+    x1 --> h1 & h2
+    x2 --> h1 & h2
+    h1 & h2 --> y
+```
 
-## Goals
+Training uses all four XOR input pairs. The cost is mean squared error, and gradients are estimated with finite differences before gradient descent updates each weight and bias. Backpropagation is a future step.
 
-1. Build basic training using matrices, weights, biases, an activation function (sigmoid initially), and a cost function.
-2. Use finite differences to get training working and testable.
-3. Implement backpropagation using partial derivatives.
-4. Increase the difficulty of training problems: OR/AND gates, then a binary adder, then something more complex.
+## Version snapshots
 
-### More Complex Training Ideas
+- [Single neuron](https://github.com/aileks/Brainlet/tree/single-neuron): learns `y = 2x`.
+- [AND, OR, and NAND gates](https://github.com/aileks/Brainlet/tree/or-and-gates): one sigmoid neuron with two inputs. The branch ends with NAND training data.
+- [XOR gate](https://github.com/aileks/Brainlet/tree/xor-gate): adds a hidden layer so the network can learn XOR. This is also the current version on `main`.
 
-- Spiral classification: Classify points belonging to two interleaving spirals.
-- Learn an image: Predict a small grayscale image's brightness from pixel coordinates.
-- Handwritten digits: Recognize digits using MNIST.
-- Find a transmitter: Predict a hidden transmitter's coordinates from noisy signal strengths at four fixed sensors.
-- Imperfect Morse code: Recognize letters from pulse and gap durations, starting with clean timing and gradually adding noise.
-- Bouncing ball: Given a ball's position and velocity in a rectangular arena, predict where it hits a wall after several bounces.
+## Run
+
+Requires Julia 1.10.12 or newer. From the repository root:
+
+```sh
+julia --project=. main.jl
+```
+
+The script prints the cost during training, then prints predictions for all four XOR inputs. It runs for 100,000 epochs, so the cost output is long.
+
+## Next steps
+
+- Replace finite differences with backpropagation.
+- Try a binary adder, then more complex training problems.
+
+Possible later problems include spiral classification, learning a small grayscale image from pixel coordinates, handwritten digit recognition with MNIST, locating a transmitter from noisy sensor readings, recognizing Morse code timing, and predicting where a bouncing ball hits a wall.
