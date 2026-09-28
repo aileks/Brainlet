@@ -112,7 +112,7 @@ function cost(nn::NN)
     for i in 1:TRAIN_COUNT
         input::Vector{Float64} = TRAIN_DATA[i, 1:2]
         expected::Float64 = TRAIN_DATA[i, 3]
-        prediction::Float64 = predict(nn, input)[1]
+        prediction::Float64 = forward(nn, input)[1]
         loss::Float64 = (prediction - expected)^2
         result += loss
     end
@@ -169,7 +169,7 @@ function sigmoid(x::Float64)
 end
 
 # Get predictions of the network.
-function predict(nn::NN, input::Vector{Float64})
+function forward(nn::NN, input::Vector{Float64})
     result::Vector{Float64} = input
 
     for layer in nn.layers
@@ -182,7 +182,7 @@ end
 function print_results(nn::NN)
     for (x1, x2, expected) in eachrow(TRAIN_DATA)
         input::Vector{Float64} = [x1, x2]
-        prediction::Float64 = round(predict(nn, input)[1]; digits=6)
+        prediction::Float64 = round(forward(nn, input)[1]; digits=6)
         println("$(Int(x1)) | $(Int(x2)) -> $prediction :: Expected $(Int64(expected))")
     end
 end
