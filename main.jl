@@ -13,15 +13,13 @@ function main()
     epochs::Int64 = 500
 
     for epoch in 1:epochs
-        current_cost::Float64 = Brainlet.cost(w, b)
-        dw::Float64 = (Brainlet.cost(w + epsilon, b) - current_cost) / epsilon
-        db::Float64 = (Brainlet.cost(w, b + epsilon) - current_cost) / epsilon
+        dw, db = Brainlet.finite_diff(w, b, epsilon)
         w -= learning_rate * dw
         b -= learning_rate * db
-        println("epoch = $epoch, cost = $(Brainlet.cost(w, b)), w = $w, b = $b")
+        # println("epoch = $epoch, cost = $(Brainlet.cost(w, b)), w = $w, b = $b")
     end
 
-    println("-"^80)
+    # println("-"^80)
     Brainlet.print_results(w, b)
 end
 

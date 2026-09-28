@@ -11,8 +11,11 @@ const TRAIN_DATA::Matrix{Float64} = [
 
 const TRAIN_COUNT::Int64 = size(TRAIN_DATA, 1)
 
-function finite_diff()
-    # TODO
+function finite_diff(weight::Float64, bias::Float64, epsilon::Float64)
+    c::Float64 = cost(weight, bias)
+    dw::Float64 = (cost(weight + epsilon, bias) - c) / epsilon
+    db::Float64 = (cost(weight, bias + epsilon) - c) / epsilon
+    return dw, db
 end
 
 function cost(weight::Float64, bias::Float64)
