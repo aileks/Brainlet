@@ -39,18 +39,22 @@ end
 
 # Logistic sigmoid function; good enough for current needs.
 # More complexity may require ReLU in the future.
+# Apply sigmoid to the weighted sum plus bias in both training and prediction.
+# Finite differences through cost already include it; don't apply it to gradients.
+# Large positive or negative inputs saturate sigmoid and make gradients small.
 function sigmoid(x::Float64)
     # TODO: Replace with ReLU
     return 1 / (1 + exp(-x))
 end
 
-function print_results(weight1::Float64, weight2::Float64, bias::Float64)
-    for i in 1:TRAIN_COUNT
-        x1::Float64 = TRAIN_DATA[i, 1]
-        x2::Float64 = TRAIN_DATA[i, 2]
-        actual::Float64 = (x1 * weight1) + (x2 * weight2) + bias
-        expected::Float64 = TRAIN_DATA[i, 3]
-        println(actual, '\t', expected)
+function predict(weight1::Float64, weight2::Float64, bias::Float64)
+    return sigmoid.(TRAIN_DATA[:, 1] .* weight1 .+ TRAIN_DATA[:, 2] .* weight2 .+ bias)
+end
+
+function print_results(predictions::Vector{Float64})
+    for (i, (x1, x2, expected)) in enumerate(eachrow(TRAIN_DATA))
+        prediction = round(predictions[i]; digits=6)
+        println("$(Int(x1)) | $(Int(x2)) -> $prediction")
     end
 end
 

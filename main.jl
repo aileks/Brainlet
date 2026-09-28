@@ -9,9 +9,9 @@ function main()
     w2::Float64 = rand()
     b::Float64 = rand()
 
-    epsilon::Float64 = 1e-3
-    learning_rate::Float64 = 1e-3
-    epochs::Int64 = 10000
+    epsilon::Float64 = 1e-2
+    learning_rate::Float64 = 1e-2
+    epochs::Int64 = 50000
 
     # Test loop for viewing weights, costs, and biases as we train
     for epoch in 1:epochs
@@ -34,7 +34,8 @@ function main()
     # end
 
     println("-"^80)
-    Brainlet.print_results(w1, w2, b)
+    predictions = Brainlet.predict(w1, w2, b)
+    Brainlet.print_results(predictions)
 end
 
 main()
