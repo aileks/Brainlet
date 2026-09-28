@@ -2,8 +2,8 @@ using Brainlet
 using Random
 
 function main()
-    Random.seed!()
-    # Random.seed!(9999)
+    # Random.seed!()
+    Random.seed!(9999)
 
     arch::Vector{Int} = [2, 2, 1]
     nn = NN(arch)

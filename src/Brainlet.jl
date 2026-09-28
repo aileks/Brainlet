@@ -47,9 +47,11 @@ struct NN
             input_count::Int64 = architecture[i] # number of values entering this layer
             output_count::Int64 = architecture[i+1] # number of neurons in this layer
 
-            # Initialize the starting weights and biases for the layer
-            weights::Matrix{Float64} = rand(output_count, input_count)
-            biases::Vector{Float64} = rand(output_count)
+            # Set the starting weights and biases for the layer using Uniform Xavier Initialization
+            # w ~ U(-x, x) where x = sqrt(6 / (n_inputs + n_outputs))
+            limit = sqrt(6 / (input_count + output_count))
+            weights::Matrix{Float64} = (2 .* rand(output_count, input_count) .- 1) .* limit # maps [0, 1) -> [-1, 1), then scales to [-limit, limit)
+            biases::Vector{Float64} = zeros(output_count)
             push!(layers, Layer(weights, biases))
         end
 
