@@ -68,8 +68,8 @@ end
 # Sigmoid being defined as:
 #    sigmoid(z) = 1 / (1 + e^(-z))
 #
-# A layer does this for every neuron it contains.
-# The outputs from one layer become the inputs to the next layer.
+# A layer does this for every neuron it contains. The outputs from one layer become the inputs to
+# the next layer.
 #
 # For a network with the architecture [2, 2, 1]:
 #   2 inputs -> 2 hidden neurons -> 1 output neuron
@@ -148,7 +148,7 @@ function finite_diff(nn::NN, epsilon::Float64)
         # Do the same approximation for biases
         # layer.biases = b1, b2, ..., bn
         for i in eachindex(layer.biases)
-            layer.biases[i] += epsilon # b + epsilon
+            layer.biases[i] += epsilon # b + epsilon in the AND/OR nn
             # approximation of ∂C/∂b
             bias_gradient[i] = (cost(nn) - c) / epsilon # db in the AND/OR nn
             layer.biases[i] -= epsilon
