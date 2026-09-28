@@ -61,7 +61,7 @@ end
 # How the Math Works
 #
 # Each neuron takes some inputs, multiplies each one by a weight, adds them together with a bias,
-# then passes the result through an activation function (logistic sigmoid is this case):
+# then passes the result through an activation function (logistic sigmoid in this case):
 #   z = (x1 * w1) + (x2 * w2) + ... + b
 #   output = sigmoid(z)
 #
@@ -135,7 +135,7 @@ function finite_diff(nn::NN, epsilon::Float64)
         weight_gradient::Matrix{Float64} = zeros(size(layer.weights))
         bias_gradient::Vector{Float64} = zeros(size(layer.biases))
 
-        # Approximate each weight's parital derivative layer.weights = w1, w2, ..., wn
+        # Approximate each weight's partial derivative layer.weights = w1, w2, ..., wn
         for row in axes(layer.weights, 1)
             for column in axes(layer.weights, 2)
                 layer.weights[row, column] += epsilon # w1 + epsilon (and w2 + epsilon) in the AND/OR nn
