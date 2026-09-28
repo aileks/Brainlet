@@ -1,17 +1,54 @@
 module Brainlet
 
-export NN, cost, finite_diff, predict, print_results
+export NN, cost, finite_diff, print_results, backprop
 
 #! format: off
-const TRAIN_DATA::Matrix{Float64} = [
-    0 0  0
-    1 0  1
-    0 1  1
-    1 1  0
+const TRAIN_INPUTS::Matrix{Float64} = [
+    0 0  0 0   # 0 + 0
+    1 0  0 0   # 1 + 0
+    0 1  0 0   # 2 + 0
+    1 1  0 0   # 3 + 0
+
+    0 0  1 0   # 0 + 1
+    1 0  1 0   # 1 + 1
+    0 1  1 0   # 2 + 1
+    1 1  1 0   # 3 + 1
+
+    0 0  0 1   # 0 + 2
+    1 0  0 1   # 1 + 2
+    0 1  0 1   # 2 + 2
+    1 1  0 1   # 3 + 2
+
+    0 0  1 1   # 0 + 3
+    1 0  1 1   # 1 + 3
+    0 1  1 1   # 2 + 3
+    1 1  1 1   # 3 + 3
+]
+
+const TRAIN_TARGETS::Matrix{Float64} = [
+    0 0 0   # = 0
+    0 0 1   # = 1
+    0 1 0   # = 2
+    0 1 1   # = 3
+
+    0 0 1   # = 1
+    0 1 0   # = 2
+    0 1 1   # = 3
+    1 0 0   # = 4
+
+    0 1 0   # = 2
+    0 1 1   # = 3
+    1 0 0   # = 4
+    1 0 1   # = 5
+
+    0 1 1   # = 3
+    1 0 0   # = 4
+    1 0 1   # = 5
+    1 1 0   # = 6
 ]
 #! format: on
 
-const TRAIN_COUNT::Int64 = size(TRAIN_DATA, 1)
+const TRAIN_COUNT::Int64 = size(TRAIN_INPUTS, 1)
 
 struct Layer
     weights::Matrix{Float64}
@@ -106,8 +143,8 @@ function cost(nn::NN)
     result::Float64 = 0
     output_count::Int = nn.architecture[end]
 
-    for i in axes(TRAIN_DATA, 1)
-        input, expected = train(nn, i)
+    for i in axes(TRAIN_INPUTS, 1)
+        input, expected = sample(i)
         prediction::Vector{Float64} = forward(nn, input)
 
         for j in eachindex(expected)
@@ -221,8 +258,8 @@ function backprop(nn::NN)
     weight_gradients::Vector{Matrix{Float64}} = [zeros(size(layer.weights)) for layer in nn.layers]
     bias_gradients::Vector{Vector{Float64}} = [zeros(size(layer.biases)) for layer in nn.layers]
 
-    for i in axes(TRAIN_DATA, 1)
-        input, expected = train(nn, i)
+    for i in axes(TRAIN_INPUTS, 1)
+        input, expected = sample(i)
 
         # Cache the values produced during the forward pass because backprop will need them while moving backward.
         activations::Vector{Vector{Float64}} = [input]
@@ -275,6 +312,7 @@ function backprop(nn::NN)
     end
 
     # Convert the accumulated per-example gradients into gradients of the mean cost used by cost(nn).
+    # NOTE: Perhaps rewrite the cost function as a summed squared error to avoid this loop?
     n = TRAIN_COUNT * nn.architecture[end]
     for i in eachindex(weight_gradients)
         weight_gradients[i] ./= n
@@ -284,12 +322,9 @@ function backprop(nn::NN)
     return weight_gradients, bias_gradients
 end
 
-function train(nn::NN, i::Int)
-    input_count::Int = nn.architecture[1]
-    output_count::Int = nn.architecture[end]
-
-    input::Vector{Float64} = TRAIN_DATA[i, 1:input_count]
-    expected::Vector{Float64} = TRAIN_DATA[i, (input_count+1):(input_count+output_count)]
+function sample(i::Int)
+    input::Vector{Float64} = TRAIN_INPUTS[i, :]
+    expected::Vector{Float64} = TRAIN_TARGETS[i, :]
 
     return input, expected
 end
@@ -318,8 +353,8 @@ function layer_debug(nn::NN, input::Vector{Float64})
 end
 
 function print_results(nn::NN)
-    for i in axes(TRAIN_DATA, 1)
-        input, expected = train(nn, i)
+    for i in axes(TRAIN_INPUTS, 1)
+        input, expected = sample(i)
         prediction = round.(forward(nn, input); digits=6)
         println("$input -> $prediction :: Expected $expected")
     end
