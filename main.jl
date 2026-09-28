@@ -13,25 +13,14 @@ function main()
     learning_rate::Float64 = 1e-2
     epochs::Int64 = 50000
 
-    # Test loop for viewing weights, costs, and biases as we train
     for epoch in 1:epochs
-        c::Float64 = Brainlet.cost(w1, w2, b)
-        println("w1 = $w1, w2 = $w2, b = $b, c = $c")
-        dw1::Float64 = (Brainlet.cost(w1 + epsilon, w2, b) - c) / epsilon
-        dw2::Float64 = (Brainlet.cost(w1, w2 + epsilon, b) - c) / epsilon
-        db::Float64 = (Brainlet.cost(w1, w2, b + epsilon) - c) / epsilon
+        c::Float64 = Brainlet.cost(w1, w2, b) # this is here just to see
+        println("w1 = $w1, w2 = $w2, c = $c")
+        dw1, dw2, db = Brainlet.finite_diff(w1, w2, b, epsilon)
         w1 -= learning_rate * dw1
         w2 -= learning_rate * dw2
         b -= learning_rate * db
     end
-
-    # Real training
-    # for epoch in 1:epochs
-    #     dw1, dw2, db = Brainlet.finite_diff(w1, w2, b, epsilon)
-    #     w1 -= learning_rate * dw1
-    #     w2 -= learning_rate * dw2
-    #     b -= learning_rate * db
-    # end
 
     println("-"^80)
     predictions = Brainlet.predict(w1, w2, b)
