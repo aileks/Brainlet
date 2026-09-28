@@ -1,6 +1,6 @@
 module Brainlet
 
-export NN, predict, cost
+export NN, cost, finite_diff, predict, print_results
 
 #=
 # XOR cannot actually be modeled with a single neuron, even with many inputs.
@@ -161,8 +161,6 @@ function finite_diff(nn::NN, epsilon::Float64)
     return weight_gradients, bias_gradients
 end
 
-# Logistic sigmoid function; good enough for current needs.
-# More complexity may require ReLU in the future.
 # Apply sigmoid to the weighted sum plus bias in both training and prediction.
 # Large positive or negative inputs saturate sigmoid and make gradients small.
 function sigmoid(x::Float64)
@@ -170,7 +168,7 @@ function sigmoid(x::Float64)
     return 1 / (1 + exp(-x))
 end
 
-# Get predictions of fully trained network.
+# Get predictions of the network.
 function predict(nn::NN, input::Vector{Float64})
     result::Vector{Float64} = input
 

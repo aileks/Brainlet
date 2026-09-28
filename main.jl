@@ -1,30 +1,37 @@
-import Brainlet
+using Brainlet
 using Random
 
 function main()
     Random.seed!()
     # Random.seed!(9999)
 
-    w1::Float64 = rand()
-    w2::Float64 = rand()
-    b::Float64 = rand()
+    arch::Vector{Int} = [2, 2, 1]
+    nn = NN(arch)
 
     epsilon::Float64 = 1e-2
-    learning_rate::Float64 = 1e-2
+    learning_rate::Float64 = 1e-1
     epochs::Int64 = 100_000
 
     for _ in 1:epochs
-        c::Float64 = Brainlet.cost(w1, w2, b) # this is here just to see
-        println("w1 = $w1, w2 = $w2, b = $b, c = $c")
-        dw1, dw2, db = Brainlet.finite_diff(w1, w2, b, epsilon)
-        w1 -= learning_rate * dw1
-        w2 -= learning_rate * dw2
-        b -= learning_rate * db
+        c::Float64 = cost(nn) # this is here just to see
+        println("cost = $c")
+        weight_gradients, bias_gradients = finite_diff(nn, epsilon)
+
+        # Apply gradients to current layer's weights and biases
+        # W = current weights
+        # b = current biases
+        # η = learning rate
+        # C = cost
+        for (layer, weight_gradient, bias_gradient) in zip(nn.layers, weight_gradients, bias_gradients)
+            # W = W - η * (∂C/∂W)
+            layer.weights .-= learning_rate .* weight_gradient
+            # b = b - η * (∂C/∂b)
+            layer.biases .-= learning_rate .* bias_gradient
+        end
     end
 
-    println("-"^80)
-    predictions = Brainlet.predict(w1, w2, b)
-    Brainlet.print_results(predictions)
+    println("-"^50)
+    print_results(nn)
 end
 
 main()
