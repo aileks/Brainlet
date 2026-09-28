@@ -6,15 +6,13 @@ function main()
     Random.seed!(9999)
 
     arch::Vector{Int} = [2, 2, 1]
-    nn = NN(arch)
+    nn::NN = NN(arch)
 
     epsilon::Float64 = 1e-1
     learning_rate::Float64 = 1e-1
     epochs::Int64 = 100_000
 
     for _ in 1:epochs
-        c::Float64 = cost(nn) # this is here just to see
-        println("cost = $c")
         weight_gradients, bias_gradients = finite_diff(nn, epsilon)
 
         # Apply gradients to current layer's weights and biases
@@ -30,8 +28,14 @@ function main()
         end
     end
 
+    c::Float64 = cost(nn)
+    println("Final cost = $c")
+
     println("-"^50)
-    print_results(nn)
+    Brainlet.layer_debug(nn, [0.0, 0.0])
+    Brainlet.layer_debug(nn, [1.0, 0.0])
+    Brainlet.layer_debug(nn, [0.0, 1.0])
+    Brainlet.layer_debug(nn, [1.0, 1.0])
 end
 
 main()

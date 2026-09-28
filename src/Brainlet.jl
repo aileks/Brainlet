@@ -188,6 +188,18 @@ function forward(nn::NN, input::Vector{Float64})
     return result
 end
 
+# Debug function to take a peak at hidden layeres
+function layer_debug(nn::NN, input::Vector{Float64})
+    result::Vector{Float64} = input
+
+    for (i, layer) in enumerate(nn.layers)
+        result = sigmoid.(layer.weights * result + layer.biases)
+        println("layer $i: $result")
+    end
+
+    return result
+end
+
 function print_results(nn::NN)
     for (x1, x2, expected) in eachrow(TRAIN_DATA)
         input::Vector{Float64} = [x1, x2]
