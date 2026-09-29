@@ -84,51 +84,53 @@ struct NN
 end
 
 #=
-# How the Math Works
-#
-# Each neuron takes some inputs, multiplies each one by a weight, adds them together with a bias,
-# then passes the result through an activation function (logistic sigmoid in this case):
-#   z = (x1 * w1) + (x2 * w2) + ... + b
-#   output = sigmoid(z)
-#
-# Sigmoid being defined as:
-#    sigmoid(z) = 1 / (1 + e^(-z))
-#
-# A layer does this for every neuron it contains. The outputs from one layer become the inputs to
-# the next layer.
-#
-# For a network with the architecture [2, 2, 1]:
-#   2 inputs -> 2 hidden neurons -> 1 output neuron
-#
-# Prediction is therefore just repeating:
-#   weighted sum -> add bias -> sigmoid -> next layer
-#
-#
-# Calculating Cost/Loss
-#
-# The loss for one prediction is the squared difference between what the network predicted and what
-# we expected:
-#   loss = (prediction - expected)^2
-#
-# The total cost is the average loss across every training example:
-#   cost = sum(losses) / number of examples
-#
-#
-# Finite Differences
-#
-# Training requires knowing how each individual weight and bias affects the cost. For any parameter p,
-# its partial derivative is approximated by:
-#   gradient = (cost(p + epsilon) - cost(p)) / epsilon
-#
-# In other words, slightly increase one parameter and see how much the cost changes. This is done
-# separately for every weight and bias in the network.
-#
-#
-# Gradient Descent
-#
-# Once the gradients are known, move each parameter in the direction that lowers the cost:
-#   p = p - (learning_rate * gradient)
-# where p can be any weight or bias in the network.
+The Basics
+
+Each neuron takes some inputs, multiplies each one by a weight, adds them together with a bias,
+then passes the result through an activation function (logistic sigmoid in this case):
+  z = (x1 * w1) + (x2 * w2) + ... + b
+  output = sigmoid(z)
+
+Sigmoid is defined as:
+   σ(z) = 1 / (1 + e⁻ᶻ)
+
+A layer does this for every neuron it contains. The outputs from one layer become the inputs to
+the next layer.
+
+For a network with the architecture [2, 2, 1]:
+  2 inputs -> 2 hidden neurons -> 1 output neuron
+
+Prediction is therefore just repeating:
+  weighted sum -> add bias -> sigmoid -> next layer
+
+
+Calculating Cost/Loss
+
+The loss for one prediction is the squared difference between the prediction and expectation:
+  L = (ŷ - y)²
+where ŷ is the network's prediction and y is the expected value.
+
+The total cost is the average loss across every training example:
+  C = (1/n) * Σᵢ Lᵢ
+where Lᵢ is the loss for training example i and n is the number of training examples.
+
+
+Finite Differences
+
+Training requires knowing how each individual weight and bias affects the cost. For any parameter p,
+its partial derivative is approximated by:
+  ∂C/∂p ≈ (C(p + ε) - C(p)) / ε
+where C(p) is the cost as a function of p and ε is a very small constant (e.g. 1e-3 or 0.001).
+
+In other words, slightly increase one parameter and see how much the cost changes. This is done
+separately for every weight and bias in the network.
+
+
+Gradient Descent
+
+Once the gradients are known, move each parameter in the direction that lowers the cost:
+  p ← p - η * ∂C/∂p
+where p can be any weight or bias in the network and η is the learning rate.
 =#
 
 # Apply sigmoid to the weighted sum plus bias in both training and prediction.
@@ -204,54 +206,54 @@ function finite_diff(nn::NN, epsilon::Float64)
 end
 
 #=
-# Backpropagation
-#
-# During the forward pass, each layer computes:
-#   z = w*aₚ + b
-#   a = σ(z)
-# where:
-#   aₚ= activations from the previous layer
-#   w = weights
-#   b = biases
-#   z = pre-activation values
-#   a = output activations
-#   σ = activation function
-#
-# Backpropagation computes how much each weight and bias contributed to the final loss L by applying
-# the chain rule from the output layer back toward the input layer.
-#
-# Each layer has an error signal:
-#
-#   δ = ∂L/∂z
-#
-# For the output layer, δ is computed directly from the derivative of the loss and the derivative
-# of the activation function.
-#
-# For a hidden layer:
-#   δ⁽ˡ⁾ = (w⁽ˡ⁺¹⁾)ᵀ * δ⁽ˡ⁺¹⁾ ⊙ σ'(z⁽ˡ⁾)
-#
-# In other words, the next layer's error is propagated backward through
-# its weights, then scaled by this layer's activation derivative.
-#
-# Once δ is known, the gradients are:
-#   ∂L/∂w = δ * aₚᵀ
-#   ∂L/∂b = δ
-#
-# For an individual weight:
-#   ∂L/∂wᵢⱼ = δᵢ * aₚⱼ
-#
-# So each weight's gradient is the error of the neuron it feeds into, multiplied by the activation
-# that passed through that weight.
-#
-# Gradient descent then updates the parameters:
-#   w ← w - η * ∂L/∂w
-#   b ← b - η * ∂L/∂b
-# where η is the learning rate.
-#
-# In short:
-#   forward:   aₚ → z → a → L
-#   backward:  L →  → ∂L/∂w, ∂L/∂b
-#   update:    parameters ← parameters - η * gradients
+What is Backpropagation?
+
+During the forward pass, each layer computes:
+  z = w*aₚ + b
+  a = σ(z)
+where:
+  aₚ = activation vector from the previous layer
+  w  = weight matrix
+  b  = bias vector
+  z  = pre-activation vector
+  a  = output activation vector
+  σ  = activation function
+
+Backpropagation computes how much each weight and bias contributed to the final loss L by applying
+the chain rule, working backward from the output layer toward the input layer.
+
+Each layer has an error signal vector:
+  δ = ∂L/∂z
+
+For the output layer, δ is computed directly from the derivative of the loss and the derivative of
+the activation function.
+
+For a hidden layer:
+  δ⁽ˡ⁾ = (w⁽ˡ⁺¹⁾)ᵀ * δ⁽ˡ⁺¹⁾ ⊙ σ'(z⁽ˡ⁾)
+where ˡ is the layer index and ⊙ is elementwise multiplication.
+
+In other words, the next layer's errors is propagated backward through its weights, then scaled
+elementwise by this layer's activation derivative.
+
+Once δ is known, the gradients are:
+  ∂L/∂w = δ * aₚᵀ
+  ∂L/∂b = δ
+
+For an individual weight:
+  ∂L/∂wᵢⱼ = δᵢ * aₚⱼ
+
+So, each weight's gradient is the error of the neuron it feeds into, multiplied by the activation
+that passed through that weight.
+
+Gradient descent then updates the parameters:
+  w ← w - η * δ * aₚᵀ
+  b ← b - η * δ
+where η is the learning rate.
+
+In short:
+  forward:   aₚ → z → a → L
+  backward:  L → δ → ∂L/∂w, ∂L/∂b
+  update:    parameters ← parameters - η * gradients
 =#
 function backprop(nn::NN)
     # Accumulate ∂L/∂W and ∂L/∂b for every layer.
