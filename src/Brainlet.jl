@@ -232,8 +232,9 @@ For a hidden layer:
   δ⁽ˡ⁾ = (w⁽ˡ⁺¹⁾)ᵀ * δ⁽ˡ⁺¹⁾ ⊙ σ'(z⁽ˡ⁾)
 where ˡ is the layer index and ⊙ is elementwise multiplication.
 
-In other words, the next layer's errors is propagated backward through its weights, then scaled
-elementwise by this layer's activation derivative.
+In other words, the next layer's error is propagated backward through its weights, then scaled
+elementwise by this layer's activation derivative. Effectively, this is the network working backward
+to figure out where the mistake came from and how strongly each part should be adjusted.
 
 Once δ is known, the gradients are:
   ∂L/∂w = δ * aₚᵀ
