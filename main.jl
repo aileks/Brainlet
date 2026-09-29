@@ -7,11 +7,11 @@ function main()
     # Random.seed!()
     Random.seed!(9999)
 
-    arch::Vector{Int} = [BITS, 2BITS, BITS - 1]
+    arch::Vector{Int} = [BITS, 2BITS, 2BITS, 2BITS, BITS - 1]
     nn::NN = NN(arch)
 
     learning_rate::Float64 = 1e-1
-    epochs::Int64 = 100_000
+    epochs::Int64 = 500_000
 
     println("First cost: $(cost(nn))")
     for _ in 1:epochs

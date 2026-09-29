@@ -352,11 +352,44 @@ function layer_debug(nn::NN, input::Vector{Float64})
     return result
 end
 
-function print_results(nn::NN)
+function print_results(nn::NN; digits::Int=3)
+    headers = ("Input", "Prediction", "Expected")
+    rows = Tuple{String,String,String}[]
+
+    format_vector(v) = "[" * join(string.(round.(v; digits=digits)), ", ") * "]"
+
     for i in axes(TRAIN_INPUTS, 1)
         input, expected = sample(i)
-        prediction = round.(forward(nn, input); digits=6)
-        println("$input -> $prediction :: Expected $expected")
+        prediction = forward(nn, input)
+
+        push!(rows, (
+            format_vector(input),
+            format_vector(prediction),
+            format_vector(expected),
+        ))
+    end
+
+    widths = collect(length.(headers))
+
+    for row in rows
+        for j in eachindex(widths)
+            widths[j] = max(widths[j], length(row[j]))
+        end
+    end
+
+    function print_row(row)
+        println(
+            rpad(row[1], widths[1]), " | ",
+            rpad(row[2], widths[2]), " | ",
+            row[3],
+        )
+    end
+
+    print_row(headers)
+    println(join(("-"^width for width in widths), "-+-"))
+
+    for row in rows
+        print_row(row)
     end
 end
 
